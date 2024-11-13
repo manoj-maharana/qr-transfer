@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>File Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <link rel="icon" href="static/assets/favicon.gif" />
+    <link rel="stylesheet" href="static/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="alert-container" class="alert-box-container"></div>
+    <div class="upload-form-container">
+      <img src="static/assets/logo.svg" alt="Logo" class="logo-image" />
+      <h1 class="primary-heading">Upload or Select a Picture</h1>
+      <form
+        action=""
+        method="post"
+        enctype="multipart/form-data"
+        class="upload-form-style"
+      >
+        <label for="file-input" class="file-label-style">📤 Attach File</label>
+        <input
+          type="file"
+          name="file"
+          id="file-input"
+          onchange="handleFileSelect(event)"
+        />
+        <p id="file-name"></p>
+        <input
+          type="submit"
+          value="Start Upload 🚀"
+          id="upload-submit-button"
+          class="generic-button"
+        />
+      </form>
+    </div>
+
+    <div id="overlay" class="overlay-background">
+      <img src="static/assets/loader.gif" alt="Loading..." class="loading-spinner" />
+    </div>
+
+    <script>
+      window.addEventListener("load", function () {
+        const overlay = document.getElementById("overlay");
+        overlay.style.display = "flex";
+        setTimeout(function () {
+          overlay.style.display = "none";
+        }, 1000);
+      });
+
+      function handleFileSelect(event) {
+  const fileInput = event.target;
+  const fileName = fileInput.files[0].name;
+  const uploadButton = document.getElementById("upload-submit-button");
+  const selectImageButton = document.querySelector(".file-label-style"); 
+  selectImageButton.style = "border-style: solid;"
+  selectImageButton.textContent = fileName;
+  
+  uploadButton.classList.add("selected");
+}
+
+function showAlert(message) {
+  const alertContainer = document.getElementById('alert-container');
+  const alertBox = document.createElement('div');
+  alertBox.classList.add('alert-box-container'); // Updated class name
+  alertBox.innerHTML = `
+    <span>${message}</span>
+    <span class="close-icon-button">&times;</span> <!-- Updated class name -->
+  `;
+
+  alertContainer.appendChild(alertBox);
+
+  setTimeout(() => {
+    alertBox.classList.add('show');
+  }, 100);
+
+  const closeIcon = alertBox.querySelector('.close-icon-button'); 
+  closeIcon.addEventListener('click', () => {
+    alertBox.classList.remove('show');
+    setTimeout(() => {
+      alertBox.remove();
+    }, 300);
+  });
+}
+
+    </script>
+  </body>
+</html>

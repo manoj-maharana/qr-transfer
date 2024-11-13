@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src=""></script>
+  
+  <meta charset="UTF-8">
+  <title>QR Transfer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="static/css/style.css">
+  <link rel="icon" href="static/assets/favicon.gif">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+  <div id="alert-container" class="alert-box-container"></div>
+  <div class="main-container">
+    <header class="page-header">
+      <div class="header-logo-title">
+        <img src="/static/assets/logo.svg" alt="Logo" class="logo-image">
+        <div>
+          <h1>Transfer Files Seamlessly📑</h1>
+          <p id="counter-text" class="header-counter">:)</p>
+        </div>
+      </div>
+      <div class="button-group">
+        <form action="/reset" method="get" class="reset-form-container">
+          <button type="submit" class="generic-button">↻ Reset Session</button>
+        </form>
+      </div>
+    </header>
+    <main>
+        <section class="qr-section">
+          <p>Scan the QR code to upload:</p>
+          <img src="data:image/png;base64,{{ qr_code_data }}" alt="QR Code" />
+          <p class="qr-url-text">
+            QR Code URL:
+            <a target="_blank" style="color: #000" href="{{ qr_code_url }}">here.</a>
+          </p>
+        </section>
+        <section class="uploaded-files-section">
+          <h2>Uploaded Files:</h2>
+          <div id="file-grid" class="file-grid-layout"></div>
+          <p id="no-files-yet">No files uploaded yet.</p>
+        </section>
+      </main>
+      <footer class="footer-container">
+        <p id="footer-text">
+          Site by
+          <a style="color: #000" href="https://www.linkedin.com/in/manoj-iitj/">Manoj Maharana</a>
+        </p>
+      </footer>
+    </div>
+    <script>
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        if (match) {
+          return match[2];
+        } else {
+          return null;
+        }
+      }
+      window.addEventListener('load', function () {
+        const currentImages = new Set();
+
+        const sessionID = getCookie('user_id');
+        if (sessionID === null) {
+          showAlert('Invalid cookies, please click "Reset Session"');
+          return;
+        }
+
+        // Poll endpoint for new uploads
+        const pollingDelay = 3000;
+        const pollingTimeoutMinutes = 10;
+
+        const pollCallback = async () => {
+          const response = await fetch(`./session_links?session_id=${sessionID}`);
+          const responseJSON = await response.json();
+          const responseLinks = responseJSON.images;
+          let isFirstUpload = false;
+          if (responseLinks.length > 0) {
+            const noFilesYetText = document.getElementById('no-files-yet');
+            if (noFilesYetText) {
+              noFilesYetText.remove();
+            }
+            // If there's a new element and it's the first element, show confetti and auto-scroll
+            if (currentImages.size === 0) {
+              isFirstUpload = true;
+            }
+          }
+          for (const imageURL of responseLinks) {
+            if (!currentImages.has(imageURL)) {
+              currentImages.add(imageURL);
+              const imageElementString = `
+                ${
+                imageURL.endsWith('.pdf') ?
+                    `
+                    <a class="pdf-parent-anchor" href="#" onclick="openPDF('${imageURL}')"><embed src="${imageURL}" class="uploaded-thumbnail"></a>
+                  ` :
+                  `
+                <a target="_blank" rel="noopener noreferrer" class="img-parent-anchor" href="${imageURL}">
+                  <img
+                    src="${imageURL}"
+                    class="uploaded-thumbnail"
+                    alt="Uploaded File"
+                  />
+                </a>
+                  `
+                }
+                <div class="action-button-container">
+                  <a href="${imageURL}" download class="download-file-button">🛬 Download</a>
+                  ${
+                  imageURL.endsWith('.pdf') ?
+                      `
+                        <a target="_blank" href="${imageURL}" class="open-pdf-link">📄 Open PDF</a>
+                    ` :
+                      `
+                        <button onclick="copyImageToClipboard(this)" data-img-src="${imageURL}" class="copy-file-button">📋 Copy</button>
+                    `
+                  }
+                </div>
+                `;
+              const fileContainerElement = document.createElement('div');
+              fileContainerElement.classList.add('file-card');
+              fileContainerElement.innerHTML = imageElementString;
+
+              document.getElementById('file-grid').appendChild(fileContainerElement);
+
+              let imageElement = null;
+              let embedElement = null;
+              for (let child of fileContainerElement.children) {
+                if (child.classList.contains('img-parent-anchor')) {
+                  imageElement = child.children[0];
+                } else if (child.classList.contains('pdf-parent-anchor')) {
+                  embedElement = child.children[0];
+                }
+              }
+
+              if (isFirstUpload) {
+                const scrollToBottom = () => {
+                  window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+                }
+                if (imageElement) {
+                  imageElement.onload = scrollToBottom;
+                } else if (embedElement) {
+                  embedElement.onload = scrollToBottom;
+                }
+              }
+
+              updateCounter();
+            }
+          }
+          // Add/remove placeholders for loading images
+          const currentLoadingElements = document.querySelectorAll('.file-placeholder');
+          if (currentLoadingElements.length < responseJSON.loading_count) {
+            const placeholderInnerHTML = `
+              <img
+                src="/static/assets/loader.gif"
+                class="uploaded-thumbnail"
+                alt="Uploaded File"
+              />
+              <div class="action-button-container">
+                <a href="#" download class="download-file-button disabled">🛬 Download</a>
+                <button disabled class="copy-file-button disabled">📋 Copy</button>
+              </div>
+              `;
+            for (let i = 0; i < responseJSON.loading_count - currentLoadingElements.length; i++) {
+              const placeholderElement = document.createElement('div');
+              placeholderElement.classList.add('file-card');
+              placeholderElement.classList.add('file-placeholder');
+              placeholderElement.innerHTML = placeholderInnerHTML;
+
+              document.getElementById('file-grid').appendChild(placeholderElement);
+            }
+          } else if (currentLoadingElements.length > responseJSON.loading_count) {
+            for (let i = 0; i < currentLoadingElements.length - responseJSON.loading_count; i++) {
+              currentLoadingElements[currentLoadingElements.length - 1].remove();
+            }
+          }
+        }
+
+        pollCallback(); // run once and then run again every `pollingDelay` milliseconds
+        const intervalID = setInterval(pollCallback, pollingDelay);
+
+        // Convert timeout to milliseconds
+        const pollingTimeout = pollingTimeoutMinutes * 1000 * 60;
+        setTimeout(() => {
+          clearInterval(intervalID);
+          showAlert('Session timeout, please refresh or click "Reset Session"');
+        }, pollingTimeout);
+      });
+
+      document.addEventListener("click", function (event) {
+        var infoBox = document.getElementById("infoBox");
+        var infoButton = document.querySelector(".info-button");
+        var targetElement = event.target;
+
+        if (
+          !infoBox.contains(targetElement) &&
+          !infoButton.contains(targetElement)
+        ) {
+          infoBox.style.display = "none";
+        }
+      });
+
+      async function convertImageToPNG(blob) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(resolve, "image/png");
+          };
+          img.onerror = reject;
+          img.src = URL.createObjectURL(blob);
+        });
+      }
+
+      async function copyImageToClipboard(buttonElement) {
+        showAlert("Copying image 🕊️...");
+        try {
+          const imgSrc = buttonElement.getAttribute("data-img-src");
+          const response = await fetch(imgSrc);
+          let blob = await response.blob();
+          if (blob.type !== "image/png") {
+            blob = await convertImageToPNG(blob);
+          }
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "image/png": blob,
+            }),
+          ]);
+          showAlert("Image copied to clipboard!");
+        } catch (error) {
+          console.error("Error copying image to clipboard", error);
+          showAlert("Failed to copy image to clipboard.");
+        }
+      }
+
+      function updateCounter() {
+        fetch('/counter')
+          .then(response => response.text())
+          .then(count => {
+            let counterHTML =  `${count} Files Successfully Transferred <i class="fa fa-check-circle"></i>`
+            if (count === "1") {
+              counterHTML = `${count} Files Successfully Transferred <i class="fa fa-check-circle"></i>`
+            }
+            document.getElementById('counter-text').innerHTML = counterHTML;
+          });
+      }
+
+      window.addEventListener('load', updateCounter);
+
+      function showAlert(message) {
+      const alertContainer = document.getElementById('alert-container');
+      const alertBox = document.createElement('div');
+      alertBox.classList.add('alert-box-container'); // Updated class name
+      alertBox.innerHTML = `
+        <span class="alert-message-text">${message}</span> <!-- Updated class name -->
+        <span class="close-icon-button">&times;</span> <!-- Updated class name -->
+      `;
+
+      alertContainer.appendChild(alertBox);
+
+      setTimeout(() => {
+        alertBox.classList.add('show');
+      }, 100);
+
+      const closeIcon = alertBox.querySelector('.close-icon-button'); // Updated class name
+      const closeCallback = () => {
+        alertBox.classList.remove('show');
+        setTimeout(() => {
+          alertBox.remove();
+        }, 300);
+      };
+      closeIcon.addEventListener('click', closeCallback);
+      return closeCallback;
+    }
+
+      function openPDF(url) {
+        console.log(url)
+        window.open(url, '_blank').focus();
+      }
+    </script>
+  </body>
+</html>

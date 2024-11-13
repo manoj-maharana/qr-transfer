@@ -1,0 +1,12 @@
+# Ignore all images under the folder /static/images/
+/static/images/*.png
+/static/images/*.jpg
+/static/images/*.jpeg
+/static/images/*.heic
+/static/images/*.pdf
+
+venv/
+__pycache__/
+
+
+static/counter.txt
