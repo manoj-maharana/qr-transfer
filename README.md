@@ -1,169 +1,159 @@
-QR Transfer - Flask Application for Seamless File Sharing
+# QR Transfer - Flask Application for Seamless File Sharing
 
-Overview
+## Overview
 
 QR Transfer is a Flask-based web application designed for easy and secure file sharing. The app allows users to generate a QR code, which can be scanned to upload and download files. Users can manage files in an efficient manner with minimal interaction, focusing on a seamless user experience. The app is built with robust security features such as session management, Content Security Policy (CSP) headers, and file cleanup scheduling.
 
-Key Features:
+![image](https://github.com/user-attachments/assets/b7f17fbb-9d21-4b87-adf7-4ff34a21c6b3)
 
-Tool for Quickly Sharing Photos Between Devices via QR Codes
 
-Generates a Unique QR Code for Each Browser Session
+## Key Features
 
-Mobile-Friendly Upload Page Accessible by Scanning the QR Code
+- Tool for Quickly Sharing Photos Between Devices via QR Codes
+- Generates a Unique QR Code for Each Browser Session
+- Mobile-Friendly Upload Page Accessible by Scanning the QR Code
+- Supports Image Upload from Mobile Devices
+- Automatically Converts HEIC Images to PNG Format
+- Displays Uploaded Images on the Host Page for Easy Download
+- Secure Session Management
+- Auto-cleanup for Old Files
 
-Supports Image Upload from Mobile Devices
+## Technologies Used
 
-Automatically Converts HEIC Images to PNG Format
+- Python (Flask, APScheduler, Werkzeug, Talisman)
+- HTML, CSS, JavaScript
+- Docker support
 
-Displays Uploaded Images on the Host Page for Easy Download
+## Setup and Installation
 
-Secure Session Management
+### Prerequisites
 
-Auto-cleanup for Old Files
+- Python 3.7+
+- Flask 3.0+
+- Node.js (optional for front-end building)
+- Docker (optional for containerization)
+- An appropriate HEIC-to-PNG converter installed on the system.
 
-Technologies Used:
+### Installation Steps
 
-Python (Flask, APScheduler, Werkzeug, Talisman)
+1. Clone the repository to your local machine:
 
-HTML, CSS, JavaScript
+   ```bash
+   git clone https://github.com/username/qr-transfer-app.git
+   cd qr-transfer-app
+   ```
 
-Docker support
+2. Create and activate a virtual environment:
 
-Setup and Installation
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate   # On Windows use: venv\Scripts\activate
+   ```
 
-Prerequisites
+3. Install the dependencies:
 
-Python 3.7+
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Flask 3.0+
+4. Create the necessary folders:
 
-Node.js (optional for front-end building)
+   ```bash
+   mkdir -p static/images
+   ```
 
-Docker (optional for containerization)
+5. Set up environment variables for security:
 
-An appropriate HEIC-to-PNG converter installed on the system.
+   - Ensure `app.secret_key` uses a secure token, which you can generate using:
+     ```python
+     import secrets
+     print(secrets.token_urlsafe(16))
+     ```
+   - Configure any necessary paths or add security configurations, such as HTTPS certificates if used in production.
 
-Installation Steps
+### Running the Application
 
-Clone the repository to your local machine:
+1. Start the Flask application:
 
-git clone https://github.com/username/qr-transfer-app.git
-cd qr-transfer-app
+   ```bash
+   python app.py
+   ```
 
-Create and activate a virtual environment:
+2. The application will be accessible at `http://127.0.0.1:8080/` by default. You can configure host and port settings in the `app.py` file if required.
 
-python3 -m venv venv
-source venv/bin/activate   # On Windows use: venv\Scripts\activate
+3. Use the `/upload` endpoint to test file upload or simply scan the generated QR code on the index page.
 
-Install the dependencies:
-
-pip install -r requirements.txt
-
-Create the necessary folders:
-
-mkdir -p static/images
-
-Set up environment variables for security:
-
-Ensure app.secret_key uses a secure token, which you can generate using:
-
-import secrets
-print(secrets.token_urlsafe(16))
-
-Configure any necessary paths or add security configurations, such as HTTPS certificates if used in production.
-
-Running the Application
-
-Start the Flask application:
-
-python app.py
-
-The application will be accessible at http://127.0.0.1:8080/ by default. You can configure host and port settings in the app.py file if required.
-
-Use the /upload endpoint to test file upload or simply scan the generated QR code on the index page.
-
-Docker Deployment (Optional)
+### Docker Deployment (Optional)
 
 To make deployment easier, you can build and run a Docker image:
 
-Build the Docker image:
+1. Build the Docker image:
 
-docker build -t qr-transfer .
+   ```bash
+   docker build -t qr-transfer .
+   ```
 
-Run the Docker container:
+2. Run the Docker container:
 
-docker run -d -p 8080:8080 qr-transfer
+   ```bash
+   docker run -d -p 8080:8080 qr-transfer
+   ```
 
-Application Structure
+## Application Structure
 
-app.py - The main entry point for the application, manages routes and logic for QR code generation, file upload, session handling, and health checks.
+- `app.py` - The main entry point for the application, manages routes and logic for QR code generation, file upload, session handling, and health checks.
+- `utils/name_generator.py` - Generates unique names for uploaded files.
+- `utils/session.py` - Session management class that tracks user sessions and timestamps.
+- `utils/heic_processor.py` - Converts HEIC image files to PNG format.
+- `templates/` - Folder containing HTML templates for index, upload, and FAQ pages.
+- `static/` - Static resources like CSS, JavaScript, and images.
+- `requirements.txt` - List of dependencies required to run the application.
 
-utils/name_generator.py - Generates unique names for uploaded files.
+## Project Routes
 
-utils/session.py - Session management class that tracks user sessions and timestamps.
+- `/` - Home page that initializes the session, generates a QR code for file upload, and provides file links.
+- `/upload` - Handles file uploads and processes HEIC images if needed.
+- `/faq` - Displays the FAQ page.
+- `/session_links` - JSON response of session-specific images.
+- `/health` - Health check endpoint.
+- `/reset` - Resets user sessions.
 
-utils/heic_processor.py - Converts HEIC image files to PNG format.
-
-templates/ - Folder containing HTML templates for index, upload, and FAQ pages.
-
-static/ - Static resources like CSS, JavaScript, and images.
-
-requirements.txt - List of dependencies required to run the application.
-
-Project Routes
-
-/ - Home page that initializes the session, generates a QR code for file upload, and provides file links.
-
-/upload - Handles file uploads and processes HEIC images if needed.
-
-/faq - Displays the FAQ page.
-
-/session_links - JSON response of session-specific images.
-
-/health - Health check endpoint.
-
-/reset - Resets user sessions.
-
-File Cleanup
+## File Cleanup
 
 To ensure security and prevent server overload, a scheduled background task deletes files older than 5 minutes and clears expired user sessions.
 
-This task runs using APScheduler, configured to run every 5 minutes.
+- This task runs using APScheduler, configured to run every 5 minutes.
 
-Security Features
+## Security Features
 
-Session Management - Each user is assigned a unique session managed using UUIDs and cookies.
+- **Session Management**: Each user is assigned a unique session managed using UUIDs and cookies.
+- **Content Security Policy (CSP)**: Configured to enforce security by allowing specific trusted domains.
+- **Secure Upload and File Handling**: File uploads are validated for accepted types and converted securely.
 
-Content Security Policy (CSP) - Configured to enforce security by allowing specific trusted domains.
+## Usage Tips
 
-Secure Upload and File Handling - File uploads are validated for accepted types and converted securely.
+- To prevent session expiry issues, ensure the session cookie is preserved when navigating the app.
+- Images will be removed after 5 minutes, so download files promptly.
+- If you experience errors when uploading, verify that file types are allowed (`png, jpg, jpeg, heic, webp, svg, gif, pdf`).
 
-Usage Tips
+## FAQ
 
-To prevent session expiry issues, ensure the session cookie is preserved when navigating the app.
-
-Images will be removed after 5 minutes, so download files promptly.
-
-If you experience errors when uploading, verify that file types are allowed (png, jpg, jpeg, heic, webp, svg, gif, pdf).
-
-FAQ
-
-How do I start using the app?
+### How do I start using the app?
 
 Simply open the homepage, scan the QR code to upload a file, and manage uploaded files via the links.
 
-Are my uploaded files secure?
+### Are my uploaded files secure?
 
 Uploaded files are stored temporarily and deleted automatically after 5 minutes. Security measures such as CSP and session management are implemented to ensure data safety.
 
-Contributing
+## Contributing
 
 Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss the proposed modifications.
 
-License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 
 
+Feel free to contact for any feature requests or issues regarding the app.
