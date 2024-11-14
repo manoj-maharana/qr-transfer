@@ -42,10 +42,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000  # Max upload size 16 MB
 csp = {
     'default-src': ["'self'", 'fonts.googleapis.com', '*.google-analytics.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com'],
     'img-src': ['*', 'data:', 'blob:', '*.google-analytics.com', '*.googletagmanager.com', '*.buymeacoffee.com'],
-    'script-src': ["'self'", "'unsafe-inline'", '*.google-analytics.com', '*.googletagmanager.com', '*.vercel.live','vercel.live'],
+    'script-src': ["'self'", "'unsafe-inline'", '*.google-analytics.com', '*.googletagmanager.com', '*.buymeacoffee.com'],
     'style-src': ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdnjs.cloudflare.com'],
-    'frame-src': ['www.buymeacoffee.com', 'buymeacoffee.com', "'self'"]
+    'frame-src': ['www.buymeacoffee.com', 'buymeacoffee.com', 'vercel.live', "'self'"]
 }
+
+
 
 # Apply security policies using Talisman
 talisman = Talisman(app)
