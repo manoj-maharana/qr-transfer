@@ -18,6 +18,10 @@ QR Transfer is a Flask-based web application designed for easy and secure file s
 - Secure Session Management
 - Auto-cleanup for Old Files
 
+
+https://github.com/user-attachments/assets/a021e40d-2edd-43dc-b15e-7ff5beaa8d95
+
+
 ## Technologies Used
 
 - Python (Flask, APScheduler, Werkzeug, Talisman)
